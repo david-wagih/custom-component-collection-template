@@ -30,5 +30,12 @@
     "eslint-plugin-react": "^7.34.1",
     "prettier": "^3.0.3",
     "postcss-modules": "^6.0.0"
+  },
+  "retoolCustomComponentLibraryConfig": {
+    "name": "MFCustomLibrary",
+    "label": "MF Custom library",
+    "description": "this is our library that contains our custom components",
+    "entryPoint": "src/index.tsx",
+    "outputPath": "dist"
   }
 }
