@@ -7,14 +7,29 @@ interface ImageControlsState {
   rotation: number
 }
 
-export const CustomImageComponent: FC = () => {
-  // Retool state bindings
+interface CustomImageComponentProps {
+  imageUrl?: string
+  isEditable?: boolean
+}
+
+export const CustomImageComponent: FC<CustomImageComponentProps> = ({
+  imageUrl: propImageUrl,
+  isEditable: propIsEditable
+}) => {
+  // Retool state bindings - modified to handle prop override after initialization
   const [imageUrl, setImageUrl] = Retool.useStateString({
     name: 'imageUrl',
-    initialValue: '',
+    initialValue: '', // Use empty string as literal initial value
     label: 'Image URL',
     description: 'URL of the image to display'
   })
+
+  // Apply prop override after initialization
+  React.useEffect(() => {
+    if (propImageUrl) {
+      setImageUrl(propImageUrl)
+    }
+  }, [propImageUrl, setImageUrl])
 
   const [isEditable, setIsEditable] = Retool.useStateBoolean({
     name: 'isEditable',
@@ -22,6 +37,13 @@ export const CustomImageComponent: FC = () => {
     label: 'Enable Controls',
     description: 'Show/hide image controls'
   })
+
+  // Apply prop override after initialization
+  React.useEffect(() => {
+    if (propIsEditable !== undefined) {
+      setIsEditable(propIsEditable)
+    }
+  }, [propIsEditable, setIsEditable])
 
   // Local state for image controls
   const [controls, setControls] = useState<ImageControlsState>({
@@ -106,3 +128,5 @@ export const CustomImageComponent: FC = () => {
     </div>
   )
 }
+
+export { default as ImageList } from './ImageList'
