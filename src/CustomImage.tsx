@@ -14,6 +14,7 @@ interface CustomImageComponentProps {
   onImageUpdate?: (imageId: string, newUrl: string) => void
   uploadedImageBase64?: string
   onBase64Change?: (base64: string) => void
+  currentItem?: { imageURL: string }
 }
 
 export const CustomImage: FC<CustomImageComponentProps> = ({
@@ -22,22 +23,25 @@ export const CustomImage: FC<CustomImageComponentProps> = ({
   isEditable: propIsEditable,
   onImageUpdate,
   uploadedImageBase64: propUploadedImageBase64,
-  onBase64Change
+  onBase64Change,
+  currentItem
 }) => {
-  // Retool state bindings 
+  // Retool state bindings
   const [imageUrl, setImageUrl] = Retool.useStateString({
     name: 'imageUrl',
     initialValue: '',
     label: 'Image URL',
-    description: 'URL of the image to display'
+    description: 'URL of the image to display',
+    inspector: 'text'
   })
 
-  // Single state for base64 that will automatically show in the inspector
+  // Base64 state with a clear name for Retool
   const [uploadedImageBase64, setUploadedImageBase64] = Retool.useStateString({
-    name: 'base64Value', // Changed to be more clear in the inspector
+    name: 'base64Value',  // This is how you'll access it in Retool
     initialValue: '',
     label: 'Image Base64',
-    description: 'Base64 string of the uploaded image'
+    description: 'Base64 string of the uploaded image',
+    inspector: 'text'
   })
 
   // Use either URL or base64 for display
@@ -59,7 +63,8 @@ export const CustomImage: FC<CustomImageComponentProps> = ({
     name: 'isEditable',
     initialValue: true,
     label: 'Enable Controls',
-    description: 'Show/hide image controls'
+    description: 'Show/hide image controls',
+    inspector: 'checkbox'
   })
 
   React.useEffect(() => {
@@ -82,10 +87,27 @@ export const CustomImage: FC<CustomImageComponentProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Add event handler for edit action
-
-  // Add event handler for save action
+  // Event handler for save action
   const onSave = Retool.useEventCallback({ name: 'onSave' })
+  const onOpen = Retool.useEventCallback({ name: 'onOpen' })
+
+  // Add a state for the current image ID or reference
+  const [currentImageId, setCurrentImageId] = Retool.useStateString({
+    name: 'currentImageId',
+    initialValue: '',
+    label: 'Current Image ID',
+    description: 'ID of the currently opened image',
+    inspector: 'text'
+  })
+
+  // Add a state for the current item's URL
+  const [currentImageURL, setCurrentImageURL] = Retool.useStateString({
+    name: 'currentImageURL',
+    initialValue: '',
+    label: 'Current Image URL',
+    description: 'URL of the current item',
+    inspector: 'text'
+  })
 
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -94,6 +116,12 @@ export const CustomImage: FC<CustomImageComponentProps> = ({
       reader.onloadend = () => {
         const base64Data = reader.result as string
         setUploadedImageBase64(base64Data)
+        
+        // Set current image ID from prop if available
+        if (propImageId) {
+          setCurrentImageId(propImageId)
+        }
+
         if (onBase64Change) {
           onBase64Change(base64Data)
         }
@@ -101,16 +129,20 @@ export const CustomImage: FC<CustomImageComponentProps> = ({
         if (onImageUpdate && propImageId) {
           onImageUpdate(propImageId, base64Data)
         }
-        // Removed the onEdit trigger from here
+        // Trigger onOpen event when a new image is loaded
+        onOpen()
       }
       reader.readAsDataURL(file)
     }
-  }, [propImageId, onImageUpdate, setImageUrl, setUploadedImageBase64, onBase64Change])
+  }, [propImageId, onImageUpdate, setImageUrl, setUploadedImageBase64, onBase64Change, onOpen, setCurrentImageId])
 
-  // Add handler for save button
+  // Update handler for save button
   const handleSave = useCallback(() => {
+    console.log('Save button clicked')
+    // Use the uploadedImageBase64 value directly
+    setImageUrl(uploadedImageBase64)
     onSave()
-  }, [onSave])
+  }, [onSave, uploadedImageBase64, setImageUrl])
 
   const handleUploadClick = () => {
     fileInputRef.current?.click()
@@ -129,6 +161,27 @@ export const CustomImage: FC<CustomImageComponentProps> = ({
       setUploadedImageBase64(propUploadedImageBase64)
     }
   }, [propUploadedImageBase64, setUploadedImageBase64])
+
+  // Add effect to sync currentImageId with prop
+  React.useEffect(() => {
+    if (propImageId) {
+      setCurrentImageId(propImageId)
+    }
+  }, [propImageId, setCurrentImageId])
+
+  // Add effect to sync imageUrl with base64 when it changes
+  React.useEffect(() => {
+    if (uploadedImageBase64) {
+      setImageUrl(uploadedImageBase64)
+    }
+  }, [uploadedImageBase64, setImageUrl])
+
+  // Update currentImageURL when currentItem changes
+  React.useEffect(() => {
+    if (currentItem?.imageURL) {
+      setCurrentImageURL(currentItem.imageURL)
+    }
+  }, [currentItem, setCurrentImageURL])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
