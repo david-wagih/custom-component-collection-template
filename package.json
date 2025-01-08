@@ -7,6 +7,11 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
+  "scripts": {
+    "dev": "retool-ccl dev",
+    "build": "retool-ccl build",
+    "deploy": "retool-ccl deploy"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
@@ -32,10 +37,14 @@
     "postcss-modules": "^6.0.0"
   },
   "retoolCustomComponentLibraryConfig": {
-    "name": "MFCustomLibrary",
-    "label": "MF Custom library",
-    "description": "this is our library that contains our custom components",
+    "name": "MFCustomComponents",
+    "label": "MF Custom Components",
+    "description": "Custom image components for Retool",
     "entryPoint": "src/index.tsx",
-    "outputPath": "dist"
+    "outputPath": "dist",
+    "components": [
+      "CustomImage",
+      "CustomImageList"
+    ]
   }
 }
